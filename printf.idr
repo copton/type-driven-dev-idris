@@ -30,7 +30,7 @@ fromList fmt with (spanView (/= '%') fmt)
 --   (text, '%' :: 's' :: rest) => FVerbatim (pack text) $ FStr (fromList rest)
 --   (text, '%' :: '%' :: rest) => FVerbatim (pack (text ++ ['%'])) (fromList rest)
 --   (text, [])                 => FVerbatim (pack text) End
---   (text, _ )                 => End -- how to signal a compile time error?
+--   (text, _ )                 => End -- ??? how to signal a compile time error?
 
 total
 PrintfType : Format -> Type
