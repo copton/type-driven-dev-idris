@@ -67,6 +67,6 @@ takeN (S k) (x :: xs) =
 
 groupByN : (n : Nat) -> (xs : List a) -> List (List a)
 groupByN n xs with (takeN n xs)
-  groupByN n xs             | Fewer = [xs]
+  groupByN n xs             | Fewer        = [xs]
   groupByN n (n_xs ++ rest) | (Exact n_xs) =
     n_xs :: groupByN n rest
