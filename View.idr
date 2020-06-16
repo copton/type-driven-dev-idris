@@ -22,7 +22,7 @@ describeListEnd xs = describeHelper xs (listLast xs)
 
 describeListEnd' : List Int -> String
 describeListEnd' input with (listLast input)
-  describeListEnd' [] | Empty = "Empty"
+  describeListEnd' []          | Empty           = "Empty"
   describeListEnd' (xs ++ [x]) | (NonEmpty xs x) =
     "Non-empty, initial portion = " ++ show xs
 
@@ -37,7 +37,7 @@ splitList input = go input input
   where
     go _ [] = SplitNone
     go _ [x] = SplitOne
-    go (_ :: _ :: counter) (item :: items)=
+    go (_ :: _ :: counter) (item :: items) =
       case go counter items of
         SplitNone => SplitOne
         SplitOne {x} => SplitPair [item] [x]
@@ -47,7 +47,7 @@ splitList input = go input input
 
 mergeSort : Ord a => List a -> List a
 mergeSort xs with (splitList xs)
-  mergeSort []         | SplitNone         = []
-  mergeSort (x :: [])  | SplitOne          = [x]
+  mergeSort []                | SplitNone                = []
+  mergeSort (x :: [])         | SplitOne                 = [x]
   mergeSort (lefts ++ rights) | (SplitPair lefts rights) =
     merge (mergeSort lefts) (mergeSort rights)
