@@ -53,12 +53,12 @@ mergeSort xs with (splitList xs)
     merge (mergeSort lefts) (mergeSort rights)
 
 data TakeN : List a -> Type where
-  Fewer : TakeN xs -- ??? where is the binder for `xs`
-  Exact : (n_xs : List a) -> TakeN (n_xs ++ rest) -- ??? where is the binder for `rest`
+  Fewer : TakeN xs
+  Exact : (n_xs : List a) -> TakeN (n_xs ++ rest)
 
 total
 takeN : (n : Nat) -> (xs : List a) -> TakeN xs
-takeN Z _             = Exact []
+takeN Z _             = Exact []  -- ??? how is the implicit parameter `rest` being inferred?
 takeN (S k) []        = Fewer
 takeN (S k) (x :: xs) =
   case takeN k xs of
@@ -70,3 +70,10 @@ groupByN n xs with (takeN n xs)
   groupByN n xs             | Fewer        = [xs]
   groupByN n (n_xs ++ rest) | (Exact n_xs) =
     n_xs :: groupByN n rest
+
+halves : List a -> (List a, List a)
+halves lst = halves' (length lst `div` 2) lst
+  where
+    halves' n xs with (takeN n xs)
+      halves' n xs             | Fewer = (xs, []) -- ??? Actually impossible case, can we avoid this?
+      halves' n (n_xs ++ rest) | (Exact n_xs) = (n_xs, rest)
