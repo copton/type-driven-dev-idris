@@ -77,3 +77,26 @@ halves lst = halves' (length lst `div` 2) lst
     halves' n xs with (takeN n xs)
       halves' n xs             | Fewer = (xs, []) -- ??? Actually impossible case, can we avoid this?
       halves' n (n_xs ++ rest) | (Exact n_xs) = (n_xs, rest)
+
+data SnocList : List a -> Type where
+  SEmpty : SnocList []
+  Snoc  : (rec : SnocList xs) -> SnocList (xs ++ [x])
+
+snocListHelp : (snoc: SnocList acc) -> (rest: List a) -> SnocList (acc ++ rest)
+snocListHelp {acc} snoc [] = rewrite appendNilRightNeutral acc in snoc
+snocListHelp {acc} snoc (x :: xs) =
+  rewrite appendAssociative acc [x] xs
+  in snocListHelp (Snoc snoc {x}) xs
+
+total
+snocList : (xs : List a) -> SnocList xs
+snocList xs = snocListHelp SEmpty xs
+
+total
+myReverseHelper : (input: List a) -> SnocList input -> List a
+myReverseHelper []          SEmpty     = []
+myReverseHelper (xs ++ [x]) (Snoc rec) = x :: myReverseHelper xs rec
+
+total
+myReverse : List a -> List a
+myReverse input = myReverseHelper input (snocList input)
