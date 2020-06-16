@@ -53,8 +53,8 @@ mergeSort xs with (splitList xs)
     merge (mergeSort lefts) (mergeSort rights)
 
 data TakeN : List a -> Type where
-  Fewer : TakeN xs
-  Exact : (n_xs : List a) -> TakeN (n_xs ++ rest)
+  Fewer : TakeN xs -- ??? where is the binder for `xs`
+  Exact : (n_xs : List a) -> TakeN (n_xs ++ rest) -- ??? where is the binder for `rest`
 
 total
 takeN : (n : Nat) -> (xs : List a) -> TakeN xs
