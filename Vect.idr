@@ -26,8 +26,10 @@ myPlusCommutes (S k) (S j) =
   rewrite recProof in Refl
 
 reverse' : {n : Nat} -> {m : Nat} -> MyVect n a -> MyVect m a -> MyVect (n + m) a
-reverse' {n} {m=Z} acc MyNil = rewrite plusZeroRightNeutral n in acc
-reverse' {n} {m=S m} acc (MyCons h t) = ?pr --(reverse' (MyCons h acc) t)
+reverse' {n} {m=Z}   acc MyNil        = rewrite plusZeroRightNeutral n in acc
+reverse' {n} {m=S m} acc (MyCons h t) = -- ??? what does this pattern on `m` even mean?
+  rewrite sym (plusSuccRightSucc n m)
+  in reverse' (MyCons h acc) t
 
 myReverseFast : MyVect n a -> MyVect n a
 myReverseFast xs = reverse' MyNil xs
