@@ -100,3 +100,14 @@ myReverseHelper (xs ++ [x]) (Snoc rec) = x :: myReverseHelper xs rec
 total
 myReverse : List a -> List a
 myReverse input = myReverseHelper input (snocList input)
+
+total
+isSuffix : Eq a => List a -> List a -> Bool
+isSuffix input1 input2 with (snocList input1)
+  isSuffix [] input2 | SEmpty = True
+  isSuffix (xs ++ [x]) input2 | (Snoc xsrec) with (snocList input2)
+    isSuffix (xs ++ [x]) [] | (Snoc xsrec) | SEmpty = False
+    isSuffix (xs ++ [x]) (ys ++ [y]) | (Snoc xsrec) | (Snoc ysrec) =
+      case x == y of
+        True => isSuffix xs ys | xsrec | ysrec
+        False => False
