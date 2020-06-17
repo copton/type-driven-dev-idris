@@ -1,5 +1,6 @@
 module Main
 
+import Data.List.Views
 
 data ListLast : List a -> Type where
   Empty : ListLast []
@@ -78,36 +79,44 @@ halves lst = halves' (length lst `div` 2) lst
       halves' n xs             | Fewer = (xs, []) -- ??? Actually impossible case, can we avoid this?
       halves' n (n_xs ++ rest) | (Exact n_xs) = (n_xs, rest)
 
-data SnocList : List a -> Type where
-  SEmpty : SnocList []
-  Snoc  : (rec : SnocList xs) -> SnocList (xs ++ [x])
+data MySnocList : List a -> Type where
+  SEmpty : MySnocList []
+  Snoc  : (rec : MySnocList xs) -> MySnocList (xs ++ [x])
 
-snocListHelp : (snoc: SnocList acc) -> (rest: List a) -> SnocList (acc ++ rest)
+snocListHelp : (snoc: MySnocList acc) -> (rest: List a) -> MySnocList (acc ++ rest)
 snocListHelp {acc} snoc [] = rewrite appendNilRightNeutral acc in snoc
 snocListHelp {acc} snoc (x :: xs) =
   rewrite appendAssociative acc [x] xs
   in snocListHelp (Snoc snoc {x}) xs
 
 total
-snocList : (xs : List a) -> SnocList xs
-snocList xs = snocListHelp SEmpty xs
+mySnocList : (xs : List a) -> MySnocList xs
+mySnocList xs = snocListHelp SEmpty xs
 
 total
-myReverseHelper : (input: List a) -> SnocList input -> List a
+myReverseHelper : (input: List a) -> MySnocList input -> List a
 myReverseHelper []          SEmpty     = []
 myReverseHelper (xs ++ [x]) (Snoc rec) = x :: myReverseHelper xs rec
 
 total
 myReverse : List a -> List a
-myReverse input = myReverseHelper input (snocList input)
+myReverse input = myReverseHelper input (mySnocList input)
 
 total
-isSuffix : Eq a => List a -> List a -> Bool
-isSuffix input1 input2 with (snocList input1)
-  isSuffix [] input2 | SEmpty = True
-  isSuffix (xs ++ [x]) input2 | (Snoc xsrec) with (snocList input2)
-    isSuffix (xs ++ [x]) [] | (Snoc xsrec) | SEmpty = False
-    isSuffix (xs ++ [x]) (ys ++ [y]) | (Snoc xsrec) | (Snoc ysrec) =
+myIsSuffix : Eq a => List a -> List a -> Bool
+myIsSuffix input1 input2 with (mySnocList input1)
+  myIsSuffix [] input2 | SEmpty = True
+  myIsSuffix (xs ++ [x]) input2 | (Snoc xsrec) with (mySnocList input2)
+    myIsSuffix (xs ++ [x]) [] | (Snoc xsrec) | SEmpty = False
+    myIsSuffix (xs ++ [x]) (ys ++ [y]) | (Snoc xsrec) | (Snoc ysrec) =
       case x == y of
-        True => isSuffix xs ys | xsrec | ysrec
+        True => myIsSuffix xs ys | xsrec | ysrec
         False => False
+
+total
+mergeSortTotal : Ord a => List a -> List a
+mergeSortTotal input with (splitRec input)
+  mergeSortTotal [] | SplitRecNil = []
+  mergeSortTotal [x] | SplitRecOne = [x]
+  mergeSortTotal (lefts ++ rights) | (SplitRecPair lrec rrec) =
+    merge (mergeSortTotal lefts | lrec) (mergeSortTotal rights | rrec)
