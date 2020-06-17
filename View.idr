@@ -120,3 +120,19 @@ mergeSortTotal input with (splitRec input)
   mergeSortTotal [x] | SplitRecOne = [x]
   mergeSortTotal (lefts ++ rights) | (SplitRecPair lrec rrec) =
     merge (mergeSortTotal lefts | lrec) (mergeSortTotal rights | rrec)
+
+total
+equalSuffix' : Eq a => List a -> List a -> List a
+equalSuffix' lhs rhs with (snocList lhs)
+  equalSuffix' [] rhs | Empty = []
+  equalSuffix' (xs ++ [x]) rhs | (Snoc lhs_rec) with (snocList rhs)
+    equalSuffix' (xs ++ [x]) [] | (Snoc lhs_rec) | Empty = []
+    equalSuffix' (xs ++ [x]) (ys ++ [y]) | (Snoc lhs_rec) | (Snoc rhs_rec) =
+      case x == y of
+--       True => x :: equalSuffix' xs ys -- ??? it seems writing total functions requires using very specific techniques.
+        True => x :: equalSuffix' xs ys | lhs_rec | rhs_rec
+        False => []
+
+total
+equalSuffix : Eq a => List a -> List a -> List a
+equalSuffix lhs rhs = reverse (equalSuffix' lhs rhs)
