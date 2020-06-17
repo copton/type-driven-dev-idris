@@ -161,20 +161,16 @@ mergeSortVect input with (Data.Vect.Views.splitRec input)
     mergeVect (mergeSortVect xs | lrec) (mergeSortVect ys | rrec)
 
 total
-toBinary' : Nat -> List Bool
-toBinary' k with (Data.Nat.Views.halfRec k)
-  toBinary' Z | HalfRecZ = []
-  toBinary' (n + n)     | (HalfRecEven rec) =
-    False :: (toBinary' n | rec)
-  toBinary' (S (n + n)) | (HalfRecOdd rec)  =
-    True :: (toBinary' n | rec)
+toBinary' : Nat -> List Char
+toBinary' k with (halfRec k)
+  toBinary' Z           | HalfRecZ          = []
+  toBinary' (n + n)     | (HalfRecEven rec) = '0' :: (toBinary' n | rec)
+  toBinary' (S (n + n)) | (HalfRecOdd rec)  = '1' :: (toBinary' n | rec)
 
-total -- ??? `toBinary 42` runs forever...
+total
 toBinary : Nat -> String
-toBinary k = pack $ map toStr $ reverse $ toBinary' k
-  where
-    toStr True = '1'
-    toStr False = '0'
+toBinary k = pack $ reverse $ toBinary' k
+ -- ??? `toBinary 42` runs forever...
 
 total
 palindrom : List Char -> Bool
