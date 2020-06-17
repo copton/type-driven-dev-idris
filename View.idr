@@ -1,6 +1,9 @@
 module Main
 
+import Data.Vect
 import Data.List.Views
+import Data.Vect.Views
+import Data.Nat.Views
 
 data ListLast : List a -> Type where
   Empty : ListLast []
@@ -136,3 +139,49 @@ equalSuffix' lhs rhs with (snocList lhs)
 total
 equalSuffix : Eq a => List a -> List a -> List a
 equalSuffix lhs rhs = reverse (equalSuffix' lhs rhs)
+
+total
+mergeVect : Ord a => Vect n a -> Vect m a -> Vect (n + m) a
+mergeVect [] [] = []
+mergeVect [] xs = xs
+mergeVect {n} xs [] = rewrite plusZeroRightNeutral n in xs
+mergeVect {n = S k} {m = S l} lhs@(x :: xs) rhs@(y :: ys) =
+  case x < y of
+    True  => x :: mergeVect xs rhs
+    False =>
+      rewrite sym (plusSuccRightSucc k l) in
+      y :: mergeVect lhs ys
+
+total
+mergeSortVect : Ord a => Vect n a -> Vect n a
+mergeSortVect input with (Data.Vect.Views.splitRec input)
+  mergeSortVect [] | SplitRecNil = []
+  mergeSortVect [x] | SplitRecOne = [x]
+  mergeSortVect (xs ++ ys) | (SplitRecPair lrec rrec) =
+    mergeVect (mergeSortVect xs | lrec) (mergeSortVect ys | rrec)
+
+total
+toBinary' : Nat -> List Bool
+toBinary' k with (Data.Nat.Views.halfRec k)
+  toBinary' Z | HalfRecZ = []
+  toBinary' (n + n)     | (HalfRecEven rec) =
+    False :: (toBinary' n | rec)
+  toBinary' (S (n + n)) | (HalfRecOdd rec)  =
+    True :: (toBinary' n | rec)
+
+total -- ??? `toBinary 42` runs forever...
+toBinary : Nat -> String
+toBinary k = pack $ map toStr $ reverse $ toBinary' k
+  where
+    toStr True = '1'
+    toStr False = '0'
+
+total
+palindrom : List Char -> Bool
+palindrom input with (vList input)
+  palindrom [] | VNil = True
+  palindrom [x] | VOne = True
+  palindrom (x :: (xs ++ [y])) | (VCons rec) =
+    case x == y of
+      False => False
+      True => palindrom xs | rec
