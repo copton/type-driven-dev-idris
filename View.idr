@@ -170,7 +170,12 @@ toBinary' k with (halfRec k)
 total
 toBinary : Nat -> String
 toBinary k = pack $ reverse $ toBinary' k
- -- ??? `toBinary 42` runs forever...
+{- ??? `toBinary 42` runs forever, due to `halfRec`
+"My first instinct would be to modify Half to return a number + a lazy proof
+it's the right one instead of having the view as is". This is puzzling, I
+thought proofs are being evaluated at compile time, so having a proof being lazy
+made little sense in my mind.
+-}
 
 total
 palindrom : List Char -> Bool
