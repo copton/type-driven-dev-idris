@@ -1,60 +1,33 @@
 module Main
 
-data Format
-  = End
-  | FVerbatim String Format -- Todo: use `List Char`
-  | FInt Format
-  | FStr Format
-  | FChar Char Format
+%default total
 
-data SpanView : (select: a -> Bool) -> List a -> Type where
-  MkSpanView : (before : List a) -> (after : List a) -> SpanView select (before ++ after)
+data Format = Number Format
+           | Str Format
+           | Lit String Format
+           | End
 
-total
-spanView : (select: a -> Bool) -> (lst: List a) -> SpanView select lst
-spanView select []        = MkSpanView [] []
-spanView select (x :: xs) =
-  case select x of
-    True  => MkSpanView [] (x :: xs)
-    False => case spanView select xs of
-      MkSpanView before after => MkSpanView (x :: before) after
-
-total
-fromList : List Char -> Format
-fromList fmt with (spanView (/= '%') fmt)
-  fromList (before ++ after) | (MkSpanView before after) =
-    FVerbatim (pack before) (fromList after)
-
--- fromList fmt = case span (/= '%') fmt of
---   (text, '%' :: 'd' :: rest) => FVerbatim (pack text) $ FInt (fromList rest)
---   (text, '%' :: 's' :: rest) => FVerbatim (pack text) $ FStr (fromList rest)
---   (text, '%' :: '%' :: rest) => FVerbatim (pack (text ++ ['%'])) (fromList rest)
---   (text, [])                 => FVerbatim (pack text) End
---   (text, _ )                 => End -- ??? how to signal a compile time error?
-
-total
 PrintfType : Format -> Type
-PrintfType End                = String
-PrintfType (FInt rest)        = Int -> PrintfType rest
-PrintfType (FVerbatim _ rest) = PrintfType rest
-PrintfType (FStr rest)        = String -> PrintfType rest
-PrintfType (FChar c rest)     = PrintfType rest
+PrintfType (Number fmt) = (i : Int) -> PrintfType fmt
+PrintfType (Str fmt) = (str : String) -> PrintfType fmt
+PrintfType (Lit str fmt) = PrintfType fmt
+PrintfType End = String
 
-total
-rec : (f: Format) -> String -> PrintfType f
-rec End acc                   = acc
-rec (FInt rest) acc           = \i: Int => rec rest (acc ++ (show i))
-rec (FVerbatim text rest) acc = rec rest (acc ++ text)
-rec (FStr rest) acc           = \s: String => rec rest (acc ++ s)
-rec (FChar c rest) acc        = rec rest (acc ++ (strCons c ""))
+printfFmt : (fmt : Format) -> (acc : String) -> PrintfType fmt
+printfFmt (Number fmt) acc = \i => printfFmt fmt (acc ++ show i)
+printfFmt (Str fmt) acc = \str => printfFmt fmt (acc ++ str)
+printfFmt (Lit lit fmt) acc = printfFmt fmt (acc ++ lit)
+printfFmt End acc = acc
 
-printf : (fmt: String) -> PrintfType (fromList $ unpack fmt)
-printf fmt = rec (fromList $ unpack fmt) ""
+toFormat : (xs : List Char) -> Format
+toFormat [] = End
+toFormat ('%' :: 'd' :: chars) = Number (toFormat chars)
+toFormat ('%' :: 's' :: chars) = Str (toFormat chars)
+toFormat ('%' :: chars) = Lit "%" (toFormat chars)
+toFormat (c :: chars) =
+  case toFormat chars of
+    Lit lit chars' => Lit (strCons c lit) chars'
+    fmt => Lit (strCons c "") fmt
 
--- test : String
--- test =
---   let f = the (String -> Int -> String) (printf "the %s is %d")
---   in f "answer" 42
---
--- main : IO ()
--- main = putStrLn test
+printf : (fmt : String) -> PrintfType (toFormat (unpack fmt))
+printf fmt = printfFmt _ ""
