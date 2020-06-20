@@ -62,7 +62,7 @@ data TakeN : List a -> Type where
 
 total
 takeN : (n : Nat) -> (xs : List a) -> TakeN xs
-takeN Z _             = Exact []  -- ??? how is the implicit parameter `rest` being inferred?
+takeN Z _             = Exact []
 takeN (S k) []        = Fewer
 takeN (S k) (x :: xs) =
   case takeN k xs of
@@ -132,7 +132,6 @@ equalSuffix' lhs rhs with (snocList lhs)
     equalSuffix' (xs ++ [x]) [] | (Snoc lhs_rec) | Empty = []
     equalSuffix' (xs ++ [x]) (ys ++ [y]) | (Snoc lhs_rec) | (Snoc rhs_rec) =
       case x == y of
---       True => x :: equalSuffix' xs ys -- ??? it seems writing total functions requires using very specific techniques.
         True => x :: equalSuffix' xs ys | lhs_rec | rhs_rec
         False => []
 

@@ -19,11 +19,13 @@ printfFmt (Str fmt) acc = \str => printfFmt fmt (acc ++ str)
 printfFmt (Lit lit fmt) acc = printfFmt fmt (acc ++ lit)
 printfFmt End acc = acc
 
+-- ??? how to handle ill-formed format strings?
 toFormat : (xs : List Char) -> Format
 toFormat [] = End
 toFormat ('%' :: 'd' :: chars) = Number (toFormat chars)
 toFormat ('%' :: 's' :: chars) = Str (toFormat chars)
-toFormat ('%' :: chars) = Lit "%" (toFormat chars)
+toFormat ('%' :: '%' :: chars) = Lit "%" (toFormat chars)
+toFormat ('%' :: chars) = idris_crash "noooo"
 toFormat (c :: chars) =
   case toFormat chars of
     Lit lit chars' => Lit (strCons c lit) chars'

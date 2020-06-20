@@ -32,26 +32,22 @@ getPrefix (S n) (x :: xs) = x :: getPrefix n xs
 
 data Face = Head | Tails
 
--- ??? what would it take to make this function total?
-mapFace : Int -> Face
-mapFace x with (divides x 2)
-  mapFace ((2 * div) + rem) | (DivBy prf) =
+mapFace' : Int -> Face
+mapFace' x with (divides x 2)
+  mapFace' ((2 * div) + rem) | (DivBy prf) =
     case rem of
       0 => Head
       1 => Tails
 
+-- ??? what would it take to make this function total without assertion?
+total
+mapFace : Int -> Face
+mapFace x = assert_total $ mapFace' x
+
+
+total
 coinFlips : Nat -> Stream Int -> List Face
 coinFlips n s = take n (map mapFace s)
-
-{- ??? why isn't `mapFace x` being evaluated? It is not a `Delayed` either
-*Streams> coinFlips 6 (randoms 12345)
-[mapFace 5390616337,
- mapFace 8972815911820980,
- mapFace -1774608062237962107,
- mapFace 2255412485305812127,
- mapFace 1346942657787456622,
- mapFace -2158951010843585939] : List Face
--}
 
 square_root_approx : (number: Double) -> (approx: Double) -> Stream Double
 square_root_approx number approx =
